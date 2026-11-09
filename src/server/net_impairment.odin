@@ -36,15 +36,17 @@ net_impairment_init :: proc(impairment: ^NetImpairment, options: Options) {
 	if seed == 0 {
 		seed = 0x12345678
 	}
-	impairment^ = {
-		enabled = net_impairment_enabled(options),
-		delay_ms = options.net_down_delay_ms,
-		jitter_ms = options.net_down_jitter_ms,
-		loss_percent = clamp_percent(options.net_down_loss),
-		duplicate_percent = clamp_percent(options.net_down_duplicate),
-		reorder_percent = clamp_percent(options.net_down_reorder),
-		rng_state = seed,
-	}
+	// NetImpairment embeds a large fixed packet queue. Avoid a struct literal
+	// assignment here: its temporary can exceed the Windows thread stack.
+	impairment.enabled = net_impairment_enabled(options)
+	impairment.delay_ms = options.net_down_delay_ms
+	impairment.jitter_ms = options.net_down_jitter_ms
+	impairment.loss_percent = clamp_percent(options.net_down_loss)
+	impairment.duplicate_percent = clamp_percent(options.net_down_duplicate)
+	impairment.reorder_percent = clamp_percent(options.net_down_reorder)
+	impairment.rng_state = seed
+	impairment.queued_count = 0
+	impairment.dropped_queue_full = 0
 }
 
 net_impairment_queue_packet :: proc(impairment: ^NetImpairment, peer: transport.Peer, channel: u8, data: []byte, mode: transport.Packet_Mode, now_seconds: f64) -> bool {

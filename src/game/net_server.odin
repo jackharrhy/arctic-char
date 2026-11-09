@@ -78,7 +78,10 @@ NetServer :: struct {
 }
 
 net_server_init :: proc(server: ^NetServer, scene: ^Scene, map_name: string, content_id: u32) {
-	server^ = {scene = scene, map_name = map_name, content_id = content_id}
+	server^ = {}
+	server.scene = scene
+	server.map_name = map_name
+	server.content_id = content_id
 }
 
 net_server_connect :: proc(server: ^NetServer, peer: NetServerPeer) {
