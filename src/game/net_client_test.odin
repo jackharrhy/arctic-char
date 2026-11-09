@@ -316,7 +316,8 @@ test_net_server_prop_delta_skips_unchanged_sent_prop_until_refresh :: proc(t: ^t
 	append(&scene.objects, Object{id = 3, kind = .Prop, transform = {position = {1, 2, 3}}, render_rotation = linalg.QUATERNIONF32_IDENTITY, replica = {net_id = 3, kind = .Prop, authority = .ServerAuthoritative}})
 	server := new(NetServer)
 	defer free(server)
-	server^ = {scene = &scene, server_tick = 10}
+	server.scene = &scene
+	server.server_tick = 10
 	session: NetServerSession
 	snapshot: protocol.Server_Snapshot
 
@@ -340,7 +341,8 @@ test_net_server_prop_delta_sends_removed_sent_prop :: proc(t: ^testing.T) {
 	scene.objects = make([dynamic]Object, 0, MAX_OBJECTS)
 	server := new(NetServer)
 	defer free(server)
-	server^ = {scene = &scene, server_tick = 1}
+	server.scene = &scene
+	server.server_tick = 1
 	session: NetServerSession
 	session.sent_props[0] = {active = true, net_id = 44}
 	snapshot: protocol.Server_Snapshot
@@ -360,7 +362,8 @@ test_net_server_prop_delta_keeps_removed_tombstones_when_packet_budget_fills :: 
 	scene.objects = make([dynamic]Object, 0, MAX_OBJECTS)
 	server := new(NetServer)
 	defer free(server)
-	server^ = {scene = &scene, server_tick = 1}
+	server.scene = &scene
+	server.server_tick = 1
 	session: NetServerSession
 	for i in 0..<protocol.MAX_REMOVED_PROPS + 1 {
 		session.sent_props[i] = {active = true, net_id = protocol.NetId(u32(i + 1))}
@@ -383,7 +386,7 @@ test_net_server_prop_delta_skips_client_only_prop :: proc(t: ^testing.T) {
 	append(&scene.objects, Object{id = 5, kind = .Prop, replica = {net_id = 5, kind = .Prop, authority = .ClientOnly}})
 	server := new(NetServer)
 	defer free(server)
-	server^ = {scene = &scene}
+	server.scene = &scene
 	session: NetServerSession
 	snapshot: protocol.Server_Snapshot
 
@@ -404,7 +407,8 @@ test_net_server_prop_delta_round_robins_more_than_one_snapshot_of_props :: proc(
 	}
 	server := new(NetServer)
 	defer free(server)
-	server^ = {scene = &scene, server_tick = 1}
+	server.scene = &scene
+	server.server_tick = 1
 	session: NetServerSession
 	first_snapshot: protocol.Server_Snapshot
 	second_snapshot: protocol.Server_Snapshot
@@ -431,7 +435,8 @@ test_net_server_prop_delta_continues_after_packet_budget_with_dirty_sent_props :
 	}
 	server := new(NetServer)
 	defer free(server)
-	server^ = {scene = &scene, server_tick = 1}
+	server.scene = &scene
+	server.server_tick = 1
 	session: NetServerSession
 	snapshot: protocol.Server_Snapshot
 
@@ -475,8 +480,12 @@ test_net_server_broadcast_snapshot_splits_many_props_into_clusters :: proc(t: ^t
 	}
 	server := new(NetServer)
 	defer free(server)
-	server^ = {scene = &scene, server_tick = 2}
-	server.sessions[0] = {peer = 1, active = true, accepted = true, player_id = 1}
+	server.scene = &scene
+	server.server_tick = 2
+	server.sessions[0].peer = 1
+	server.sessions[0].active = true
+	server.sessions[0].accepted = true
+	server.sessions[0].player_id = 1
 
 	net_server_broadcast_snapshot(server)
 

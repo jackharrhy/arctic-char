@@ -57,7 +57,8 @@ qpaths under `base` by default.
 
 `python cli.py server-build` builds the headless dedicated server entrypoint. It
 uses Odin's `vendor:ENet` binding, which requires a system ENet library. On
-macOS, install it with `brew install enet`.
+macOS, install it with `brew install enet`. On Windows, install it with
+`vcpkg install enet:x64-windows` and set `VCPKG_ROOT` to your vcpkg directory.
 
 `python cli.py smoke` runs the SDL app through the in-process loopback path.
 `python cli.py net-smoke` builds the dedicated server and real game client, then

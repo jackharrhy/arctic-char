@@ -658,6 +658,24 @@ def require_system_enet() -> None:
         Path("/usr/lib/libenet.dylib"),
         Path("/usr/lib/libenet.a"),
     ]
+    if platform.system() == "Windows":
+        vcpkg_roots = [Path(os.environ["VCPKG_ROOT"])] if os.environ.get("VCPKG_ROOT") else []
+        vcpkg_roots.extend([
+            Path.home() / "software" / "vcpkg",
+            Path.home() / "AppData" / "Local" / "vcpkg",
+            Path("C:/vcpkg"),
+        ])
+        for root in vcpkg_roots:
+            library = root / "installed" / "x64-windows" / "lib" / "enet.lib"
+            if library.exists():
+                candidates.append(library)
+                # Odin's Windows linker uses LIB for additional library search paths.
+                library_dir = str(library.parent)
+                existing_lib = os.environ.get("LIB", "")
+                lib_dirs = existing_lib.split(os.pathsep) if existing_lib else []
+                if library_dir not in lib_dirs:
+                    os.environ["LIB"] = os.pathsep.join([*lib_dirs, library_dir])
+                break
     if any(path.exists() for path in candidates):
         return
 
@@ -666,6 +684,8 @@ def require_system_enet() -> None:
         hint = "Install it with `brew install enet`."
     elif system == "Linux":
         hint = "Install the ENet development package, e.g. `libenet-dev` or `enet-devel`."
+    elif system == "Windows":
+        hint = "Install it with `vcpkg install enet:x64-windows` and set VCPKG_ROOT."
     else:
         hint = "Install ENet and make sure the linker can find it."
     raise SystemExit(f"Missing system ENet library required by Odin's vendor:ENet binding. {hint}")
